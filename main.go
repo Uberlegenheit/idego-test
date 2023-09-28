@@ -123,22 +123,40 @@ func displayAlerts(alerts *models.AlertResponse) {
 }
 
 func main() {
-	city := flag.String("city", "oregon", "Name of the city in the USA")
-	updateInterval := flag.Duration("time", time.Minute, "Update interval for data in minutes")
 	flag.Parse()
+	args := flag.Args()
 
-	if *city == "" {
+	if len(args) == 0 {
+		fmt.Println("Please provide at least a city name.")
+		os.Exit(1)
+	}
+
+	city := args[0]
+	if city == "" {
 		fmt.Println("Please provide a city name using the -city flag.")
 		os.Exit(1)
 	}
 
+	updateIntervalStr := "1m"
+	if len(args) > 1 {
+		updateIntervalStr = args[1]
+	}
+	updateInterval, err := time.ParseDuration(updateIntervalStr)
+	if err != nil {
+		fmt.Println("Error parsing duration:", err)
+		return
+	}
+	if updateInterval < (time.Second * 10) {
+		updateInterval = time.Second * 10
+	}
+	fmt.Printf("Updating time is set to: %v\n", updateInterval)
 	for {
-		weather, state, err := getWeather(*city)
+		weather, state, err := getWeather(city)
 		if err != nil {
 			fmt.Printf("Error fetching weather data: %v\n", err)
 			continue
 		}
-		fmt.Printf("Current Weather in %s:\n", *city)
+		fmt.Printf("Current Weather in %s:\n", city)
 		displayWeather(weather)
 
 		alerts, err := getAlerts(state)
@@ -149,7 +167,7 @@ func main() {
 		fmt.Printf("\n%s:\n", alerts.Title)
 		displayAlerts(alerts)
 
-		time.Sleep(*updateInterval)
+		time.Sleep(updateInterval)
 		fmt.Println("\n---------- UPDATE ----------")
 	}
 }
