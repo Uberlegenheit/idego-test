@@ -3,9 +3,10 @@ package models
 import "time"
 
 type Forecast struct {
-	Context  []interface{} `json:"@context"`
-	Type     string        `json:"type"`
-	Geometry struct {
+	Context       []interface{} `json:"@context"`
+	RequestedCity string        `json:"-"`
+	Type          string        `json:"type"`
+	Geometry      struct {
 		Type        string        `json:"type"`
 		Coordinates [][][]float64 `json:"coordinates"`
 	} `json:"geometry"`
